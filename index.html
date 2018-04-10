@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h1>Simple use of Google Map with multiples markers</h1>
+
+<div id="googleMap" style="width:100%;height:400px;"></div>
+
+<div id="googleMap-Results" style="width:100%;height:auto"><br/><h2> Search Address Positions example : </h2></div>
+
+<script>
+	// Google map callback function
+	function myMap() {
+
+		// to show map
+		var mapProp= {
+		    center:new google.maps.LatLng(9.737100489464419, 4.05229331768824),
+		    zoom:3,
+			mapTypeId: google.maps.MapTypeId.ROADMAP,
+			  mapTypeControl: true,
+			  scrollwheel: true,
+			  draggable: true,
+			  styles: [{"featureType":"landscape.natural","elementType":"geometry.fill","stylers":[{"visibility":"on"},{"color":"#e0efef"}]},{"featureType":"poi","elementType":"geometry.fill","stylers":[{"visibility":"on"},{"hue":"#1900ff"},{"color":"#c0e8e8"}]},{"featureType":"road","elementType":"geometry","stylers":[{"lightness":100},{"visibility":"simplified"}]},{"featureType":"road","elementType":"labels","stylers":[{"visibility":"off"}]},{"featureType":"transit.line","elementType":"geometry","stylers":[{"visibility":"on"},{"lightness":700}]},{"featureType":"water","elementType":"all","stylers":[{"color":"#7dcdcd"}]}],
+			  mapTypeControlOptions: {style: google.maps.MapTypeControlStyle.DROPDOWN_MENU},
+			  navigationControl: true,
+			  navigationControlOptions: {style: google.maps.NavigationControlStyle.SMALL},         
+		};
+		var map=new google.maps.Map(document.getElementById("googleMap"),mapProp);
+
+
+		// Resize event on Map
+		google.maps.event.addDomListener(window, "resize", function() {
+		  var center = map.getCenter();
+		  	  google.maps.event.trigger(map, "resize");
+		 	  map.setCenter(center);
+		     $('#main').removeClass('loading');
+		});
+
+		// Coords Array
+		var cords = [
+			{title: "Douala", icon: "marker.png", sizes: {width:100, height:120}, lat: 9.737100489464419, long: 4.05229331768824},
+			{title: "Yaounde", icon: "marker.png", sizes: {width:100, height:120}, lat: 4.737100489464419, long: 4.05229331768824},
+			{title: "Nkongsamba", icon: "marker.png", sizes: {width:100, height:120}, lat: 14.737100489464419, long: 4.05229331768824},
+			{title: "Edéa", icon: "marker.png", sizes: {width:100, height:120}, lat: 4.0511, long: 9.7679}
+		];
+		
+
+		/*  PREMIERE UTILISATION */
+		// Afficher des points sur la carte à partir de leurs coordonnées
+		function mapCords(id, cords){
+
+			if(id < cords.length){
+				var cord = cords[id];
+
+				var infowindow = new google.maps.InfoWindow({
+					content: '<div id="info-window"><p>'+cord.title+'</p></div>'
+			  	});
+
+				var cordImage = new google.maps.MarkerImage(cord.icon,
+					new google.maps.Size(cord.sizes.width,cord.sizes.height),// Width and height of the marker
+					new google.maps.Point(0,0),
+					new google.maps.Point(cord.lat,cord.long)// POSITION of the marker 
+				);
+
+			 	var mark = new google.maps.Marker({
+					  position: new google.maps.LatLng(cord.lat, cord.long),
+					  map: map,
+					  title: cord.title,
+					  zIndex: id,
+					  icon: cordImage,
+					  draggable:true
+				});
+
+				google.maps.event.addListener(mark,'click', (function(mark,infowindow){ 
+					return function() {
+						infowindow.open(map,mark);
+					};
+				})(mark,infowindow));
+
+				mapCords(id+1, cords);
+			}
+			
+		}
+		// tester
+		mapCords(0, cords);
+
+
+		/*  DEUXIEME UTILISATION */
+		// récupérer certaines infos à partir d'une adresse
+		function mapCordsAddress(id, cords){
+			var Result = document.getElementById("googleMap-Results");
+
+			if(id < cords.length){
+				var cord = cords[id];
+
+				var geocoder = new google.maps.Geocoder();
+				geocoder.geocode( { 'address': cord.title}, function(results, status) {
+					var map_coords = JSON.parse(JSON.stringify(results[0].geometry.location));
+
+					Result.innerHTML += "<div>Address : "+cord.title+" </div>";
+					Result.innerHTML += "<div>Lattitude : "+map_coords.lat+",    Longitude : "+map_coords.lng+"</div>";
+					Result.innerHTML += "<br/>";
+					mapCordsAddress(id+1, cords);
+				});
+
+			}
+			
+		}
+		// Tester
+		mapCordsAddress(0, cords);
+
+		
+	}
+</script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBPAXdx0-ZoxDaa8pGK5YIP6TcuEDwwYWA&callback=myMap"></script>
+
+
+
+</body>
+</html>
